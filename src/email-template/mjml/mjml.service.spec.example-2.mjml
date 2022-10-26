@@ -1,0 +1,35 @@
+<mjml>
+  <mj-head>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          <h1>
+            {{ title }}
+            <small>Video by {{ name }}</small>
+          </h1>
+          <mj-button href="{{ url }}">
+            Watch the Video
+          </mj-button>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <tr>
+            <th>Name</th>
+            <th>Author</th>
+          </tr>
+          <tr>
+          {{#each references}}
+            <td>{{this.name}}</td>
+            <td>{{this.author}}</td>
+          {{/each}}
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

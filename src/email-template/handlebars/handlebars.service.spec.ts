@@ -3,6 +3,11 @@ import { HandlebarsService } from './handlebars.service';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+import {
+  SampleTemplateContext,
+  example1,
+} from './handlebars.service.spec.context';
+
 describe('HandlebarsService', () => {
   let service: HandlebarsService;
 
@@ -20,31 +25,31 @@ describe('HandlebarsService', () => {
 
   test.each([
     [
-      'handlebars.service.example-1.spec.hbs',
-      {
-        quality: 'poor',
-        people: [
-          {
-            firstName: 'Matthew',
-            lastName: 'Martin',
-          },
-          {
-            firstName: 'Omar',
-            lastName: 'Martin',
-          },
-        ],
-      },
-      'handlebars.service.example-1.spec.html',
+      'handlebars.service.spec.example.hbs',
+      example1,
+      'handlebars.service.spec.example-1.html',
     ],
   ])(
     'render(%s, %o)',
-    (templatePath: string, data: any, expectedPath: string) => {
-      const fullTemplatePath = join(__dirname, templatePath);
-      const input = readFileSync(fullTemplatePath, 'utf8');
+    async (
+      templatePath: string,
+      context: SampleTemplateContext,
+      expectedPath: string,
+    ) => {
+      // this is the expected output
       const fullExpectedPath = join(__dirname, expectedPath);
       const expected = readFileSync(fullExpectedPath, 'utf8');
-      const actual = service.compileAndRender(input, data);
-      expect(actual).toEqual(expected);
+
+      // this is the template path
+      const filename = join(__dirname, templatePath);
+
+      // using pre-read source text from templates
+      const src = readFileSync(filename, 'utf8');
+      const actual1 = await service.compileAndRender<SampleTemplateContext>({
+        context,
+        src,
+      });
+      expect(actual1).toEqual(expected);
     },
   );
 });

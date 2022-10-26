@@ -1,4 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import { MarkdownService } from './markdown.service';
 
 describe('MarkdownService', () => {
@@ -16,7 +19,17 @@ describe('MarkdownService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  test.each([
+    [
+      'markdown.service.spec.example-1.md',
+      'markdown.service.spec.example-1.html',
+    ],
+  ])('render(%s, %o)', (templatePath: string, expectedPath: string) => {
+    const fullTemplatePath = join(__dirname, templatePath);
+    const input = readFileSync(fullTemplatePath, 'utf8');
+    const fullExpectedPath = join(__dirname, expectedPath);
+    const expected = readFileSync(fullExpectedPath, 'utf8');
+    const actual = service.render(input);
+    expect(actual).toEqual(expected);
   });
 });

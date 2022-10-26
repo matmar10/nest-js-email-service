@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { marked } from 'marked';
-import { HandlebarsService } from './../handlebars';
+
+import { MarkdownOptions } from './markdown.interfaces';
+
 @Injectable()
 export class MarkdownService {
-  constructor(private handlebars: HandlebarsService) {}
-
-  render(src: string, options?: marked.MarkedOptions): string {
+  render(src: string, options?: MarkdownOptions): string {
     return marked(src, options);
   }
 }
