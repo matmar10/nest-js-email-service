@@ -7,7 +7,7 @@ import { minify } from 'html-minifier-terser';
 describe('MjmlService', () => {
   let service: MjmlService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [MjmlService],
     }).compile();
@@ -21,7 +21,7 @@ describe('MjmlService', () => {
 
   test.each([
     ['mjml.service.spec.example-1.mjml', 'mjml.service.spec.example-1.html'],
-  ])('render(%s, %o)', async (templatePath: string, expectedPath: string) => {
+  ])('render("%s", %o)', async (templatePath: string, expectedPath: string) => {
     // this is the expected output
     const fullExpectedPath = join(__dirname, expectedPath);
     const expected = readFileSync(fullExpectedPath, 'utf8');
@@ -30,7 +30,7 @@ describe('MjmlService', () => {
     const filename = join(__dirname, templatePath);
     const src = readFileSync(filename, 'utf8');
 
-    const actual = service.render(src);
+    const actual = await service.render(src);
 
     const actualMinified = minify(actual);
     const expectedMinified = minify(expected);

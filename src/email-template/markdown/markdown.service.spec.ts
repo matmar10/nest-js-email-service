@@ -7,7 +7,7 @@ import { MarkdownService } from './markdown.service';
 describe('MarkdownService', () => {
   let service: MarkdownService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [MarkdownService],
     }).compile();
@@ -24,12 +24,12 @@ describe('MarkdownService', () => {
       'markdown.service.spec.example-1.md',
       'markdown.service.spec.example-1.html',
     ],
-  ])('render(%s, %o)', (templatePath: string, expectedPath: string) => {
+  ])('render("%s", %o)', async (templatePath: string, expectedPath: string) => {
     const fullTemplatePath = join(__dirname, templatePath);
     const input = readFileSync(fullTemplatePath, 'utf8');
     const fullExpectedPath = join(__dirname, expectedPath);
     const expected = readFileSync(fullExpectedPath, 'utf8');
-    const actual = service.render(input);
+    const actual = await service.render(input);
     expect(actual).toEqual(expected);
   });
 });

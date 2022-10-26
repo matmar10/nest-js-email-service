@@ -11,7 +11,7 @@ import {
 describe('HandlebarsService', () => {
   let service: HandlebarsService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [HandlebarsService],
     }).compile();
@@ -30,7 +30,7 @@ describe('HandlebarsService', () => {
       'handlebars.service.spec.example-1.html',
     ],
   ])(
-    'render(%s, %o)',
+    'render("%s", %o)',
     async (
       templatePath: string,
       context: SampleTemplateContext,
@@ -45,10 +45,10 @@ describe('HandlebarsService', () => {
 
       // using pre-read source text from templates
       const src = readFileSync(filename, 'utf8');
-      const actual1 = await service.compileAndRender<SampleTemplateContext>({
-        context,
+      const actual1 = await service.renderContext<SampleTemplateContext>(
         src,
-      });
+        context,
+      );
       expect(actual1).toEqual(expected);
     },
   );

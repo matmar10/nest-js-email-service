@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailTemplateService } from './email-template.service';
-import { HandlebarsService } from './handlebars';
+import { HandlebarsOptions, HandlebarsService } from './handlebars';
 import { MarkdownService } from './markdown/markdown.service';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -11,13 +11,30 @@ import {
   example2,
 } from './email-template.service.spec.context';
 import { TemplateArgs } from './email-template.interfaces';
+import { MarkdownOptions } from './markdown';
+import { defaultRenderersProvider } from './email-template.constants';
+import { MjmlService } from './mjml/mjml.service';
+import {
+  EMAIL_TEMPLATE_RENDERERS,
+  DEFAULT_EMAIL_TEMPLATE_RENDERERS,
+} from './email-template.constants';
 
 describe('EmailTemplateService', () => {
   let service: EmailTemplateService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EmailTemplateService, HandlebarsService, MarkdownService],
+      providers: [
+        {
+          provide: EMAIL_TEMPLATE_RENDERERS,
+          useExisting: DEFAULT_EMAIL_TEMPLATE_RENDERERS,
+        },
+        defaultRenderersProvider,
+        EmailTemplateService,
+        HandlebarsService,
+        MarkdownService,
+        MjmlService,
+      ],
     }).compile();
 
     service = module.get<EmailTemplateService>(EmailTemplateService);
@@ -57,7 +74,11 @@ describe('EmailTemplateService', () => {
         context,
         filename,
       };
-      const actual1 = await service.render<SampleTemplateContext>(args);
+      const actual1 = await service.render<
+        SampleTemplateContext,
+        MarkdownOptions,
+        HandlebarsOptions
+      >(args);
       expect(actual1).toEqual(expected);
     },
   );
