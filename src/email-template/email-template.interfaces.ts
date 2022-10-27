@@ -51,19 +51,20 @@ export type RegisterRendererArg =
 
 export interface EmailTemplateModuleOptions {
   enableDefaultRenderers: boolean;
-  renderers: RegisterRendererArg[];
+  renderers?: RegisterRendererArg[];
 }
 
-export interface EmailTemplateModuleOptionsFactory {
-  buildOptions(): Promise<EmailTemplateModuleOptions>;
+export interface EmailTemplateModuleRenderersFactory {
+  buildRenderers(): Promise<RegisterRendererArg[]>;
 }
 
 export interface EmailTemplateModuleAsyncOptions
   extends Pick<ModuleMetadata, 'imports'> {
+  enableDefaultRenderers: boolean;
   inject?: any[];
   useExisting?: Type<EmailTemplateModuleOptions>;
-  useClass?: Type<EmailTemplateModuleOptionsFactory>;
+  useClass?: Type<EmailTemplateModuleRenderersFactory>;
   useFactory?: (
     ...args: any[]
-  ) => Promise<EmailTemplateModuleOptions> | EmailTemplateModuleOptions;
+  ) => Promise<RegisterRendererArg[]> | RegisterRendererArg[];
 }

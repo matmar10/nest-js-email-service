@@ -3,9 +3,10 @@ import { HandlebarsService } from './handlebars/handlebars.service';
 import { MjmlService } from './mjml/mjml.service';
 
 export const EMAIL_TEMPLATE_RENDERERS = 'EMAIL_TEMPLATE_RENDERERS';
+export const CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS =
+  'CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS';
 export const DEFAULT_EMAIL_TEMPLATE_RENDERERS =
   'DEFAULT_EMAIL_TEMPLATE_RENDERERS';
-export const EMAIL_TEMPLATE_MODULE_OPTIONS = 'EMAIL_TEMPLATE_MODULE_OPTIONS';
 
 export const defaultRenderers = [
   HandlebarsService,
@@ -38,4 +39,5 @@ export const defaultRenderersProvider = {
 
 export const optionsDefaults = {
   enableDefaultRenderers: true,
+  renderers: [],
 };

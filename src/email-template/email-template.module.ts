@@ -3,12 +3,13 @@ import { EmailTemplateService } from './email-template.service';
 import {
   EmailTemplateModuleOptions,
   EmailTemplateModuleAsyncOptions,
-  EmailTemplateModuleOptionsFactory,
+  EmailTemplateModuleRenderersFactory,
+  RegisterRendererArg,
 } from './email-template.interfaces';
 import {
+  CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
   DEFAULT_EMAIL_TEMPLATE_RENDERERS,
   EMAIL_TEMPLATE_RENDERERS,
-  EMAIL_TEMPLATE_MODULE_OPTIONS,
   defaultRenderers,
   optionsDefaults,
   defaultRenderersProvider,
@@ -16,59 +17,118 @@ import {
 
 @Module({})
 export class EmailTemplateModule {
-  public static register(_options: EmailTemplateModuleOptions): DynamicModule {
+  public static forRoot(_options?: EmailTemplateModuleOptions): DynamicModule {
     const options = {
       ...optionsDefaults,
-      ..._options,
+      ...(_options || {}),
     };
-    const { enableDefaultRenderers, renderers } = options;
-    const providers: Provider[] = [EmailTemplateService];
+    const { enableDefaultRenderers, renderers: clientProvidedRenderers } =
+      options;
 
-    if (enableDefaultRenderers) {
-      providers.push(defaultRenderersProvider);
-      providers.push({
-        provide: EMAIL_TEMPLATE_RENDERERS,
-        useFactory: (additionalRenderers) => {
-          // TODO: this could result in duplicates; probably needs validation later in register method
-          return renderers.concat(additionalRenderers);
-        },
-        inject: [DEFAULT_EMAIL_TEMPLATE_RENDERERS],
-      });
-    } else {
-      providers.push({
-        provide: EMAIL_TEMPLATE_RENDERERS,
-        useValue: renderers,
-      });
-    }
+    const providers: Provider[] = enableDefaultRenderers
+      ? // use both defaults plus client-provided renderers
+        [
+          // each class needs to be added to providers
+          // so that they can be provided by this module
+          ...defaultRenderers,
+          // provide the metadata about which default renderer does what
+          defaultRenderersProvider,
+          // merge the defaults plus any client provided renderers
+          {
+            provide: EMAIL_TEMPLATE_RENDERERS,
+            useFactory: (defaultRenderers: RegisterRendererArg[]) => {
+              // TODO: this could result in duplicates; probably needs validation later in register method
+              return []
+                .concat(defaultRenderers)
+                .concat(clientProvidedRenderers);
+            },
+            inject: [DEFAULT_EMAIL_TEMPLATE_RENDERERS],
+          },
+          EmailTemplateService,
+        ]
+      : // use only the client renderes
+        [
+          {
+            provide: EMAIL_TEMPLATE_RENDERERS,
+            useValue: clientProvidedRenderers,
+          },
+        ];
 
     return {
+      global: true,
       module: EmailTemplateModule,
       imports: [],
       providers,
+      // if using defaults, need to export those as well
       exports: enableDefaultRenderers
         ? [...defaultRenderers, EmailTemplateService]
         : [EmailTemplateService],
     };
   }
 
-  public static registerAsync(
-    optionsAsync: EmailTemplateModuleAsyncOptions,
+  public static forRootAsync(
+    optionsAsync?: EmailTemplateModuleAsyncOptions,
   ): DynamicModule {
+    const options = {
+      enableDefaultRenderers: optionsDefaults.enableDefaultRenderers,
+      ...optionsAsync,
+    };
+    const { enableDefaultRenderers } = options;
+
+    const clientProvidedRenderers =
+      this.createAsyncProviderForClientProvidedRenderers(options);
+
+    const providers = enableDefaultRenderers
+      ? // use defaults PLUS client provided renderers
+        [
+          ...defaultRenderers,
+          defaultRenderersProvider,
+          clientProvidedRenderers,
+          {
+            provide: EMAIL_TEMPLATE_RENDERERS,
+            useFactory: (
+              defaultRenderers: RegisterRendererArg[],
+              clientProvidedRenderers: RegisterRendererArg[],
+            ) => {
+              return []
+                .concat(defaultRenderers)
+                .concat(clientProvidedRenderers);
+            },
+            inject: [
+              DEFAULT_EMAIL_TEMPLATE_RENDERERS,
+              CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
+            ],
+          },
+          EmailTemplateService,
+        ]
+      : // use ONLY renderers provided by client
+        [
+          clientProvidedRenderers,
+          {
+            provide: EMAIL_TEMPLATE_RENDERERS,
+            useExisting: CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
+          },
+          EmailTemplateService,
+        ];
+
     return {
       module: EmailTemplateModule,
-      imports: optionsAsync.imports || [],
-      providers: [this.createAsyncProvider(optionsAsync), EmailTemplateService],
-      exports: [EmailTemplateService],
+      imports: options.imports || [],
+      providers,
+      // if using defaults, need to export those as well
+      exports: enableDefaultRenderers
+        ? [...defaultRenderers, EmailTemplateService]
+        : [EmailTemplateService],
     };
   }
 
-  private static createAsyncProvider(
+  private static createAsyncProviderForClientProvidedRenderers(
     options: EmailTemplateModuleAsyncOptions,
   ): Provider {
     // useFactory - the most flexible
     if (options.useFactory) {
       return {
-        provide: EMAIL_TEMPLATE_MODULE_OPTIONS,
+        provide: CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
         useFactory: options.useFactory,
         inject: options.inject || [],
       };
@@ -77,18 +137,26 @@ export class EmailTemplateModule {
     // useExisting - need to provide options literal
     if (options.useExisting) {
       return {
-        provide: EMAIL_TEMPLATE_MODULE_OPTIONS,
-        useFactory: async (options: EmailTemplateModuleOptions) => options,
+        provide: CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
+        useFactory: async (renderers: RegisterRendererArg[]) => renderers,
         inject: [options.useExisting],
       };
     }
 
     // useClass - need to provide factory
+    if (options.useClass) {
+      return {
+        provide: CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
+        useFactory: async (
+          optionsFactory: EmailTemplateModuleRenderersFactory,
+        ) => await optionsFactory.buildRenderers(),
+        inject: [options.useClass],
+      };
+    }
+
     return {
-      provide: EMAIL_TEMPLATE_MODULE_OPTIONS,
-      useFactory: async (optionsFactory: EmailTemplateModuleOptionsFactory) =>
-        await optionsFactory.buildOptions(),
-      inject: [options.useClass],
+      provide: CLIENT_PROVIDED_EMAIL_TEMPLATE_RENDERERS,
+      useValue: [],
     };
   }
 }
