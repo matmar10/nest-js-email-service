@@ -37,5 +37,6 @@ export interface EmailSyncProvider {
 }
 
 export interface EmailAsyncProvider {
+  send(req: SendEmailRequest): Promise<void>;
   status(res: SendEmailResponse): Promise<void | SendEmailResponse>;
 }
