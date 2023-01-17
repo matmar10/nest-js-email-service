@@ -21,10 +21,12 @@ export interface NamedTemplateRenderer {
   get name(): string;
 }
 
+// does not support personalization
 export interface TemplateRenderer extends NamedTemplateRenderer {
   render<Opts>(src: string, options?: Opts): Promise<string>;
 }
 
+// supports personalization
 export interface TemplateWithContextRenderer extends NamedTemplateRenderer {
   renderContext<Context, Opts>(
     src: string,
