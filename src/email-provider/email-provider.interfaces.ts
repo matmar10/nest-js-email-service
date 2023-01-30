@@ -20,6 +20,16 @@ export interface EmailData {
   html?: string;
 
   templateId?: string;
+  attachments?: {
+    filename: string;
+    content?: any;
+    path?: string;
+    contentType?: string;
+    cid?: string;
+    encoding?: string;
+    contentDisposition?: 'attachment' | 'inline' | undefined;
+    href?: string;
+  }[];
 }
 
 export type SendEmailRequest = EmailData &
@@ -37,5 +47,12 @@ export interface EmailSyncProvider {
 }
 
 export interface EmailAsyncProvider {
+  send(req: SendEmailRequest): Promise<void>;
   status(res: SendEmailResponse): Promise<void | SendEmailResponse>;
+}
+
+export interface EmailOptions {
+  service: string;
+  user: string;
+  password: string;
 }
