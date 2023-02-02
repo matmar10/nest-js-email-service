@@ -1,6 +1,10 @@
-import * as Mail from 'nodemailer/lib/mailer';
+import { Transporter } from 'nodemailer';
+
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { TransportType } from './email-provider-options.interface';
 
 export interface MailerTransportFactory {
-  createTransport(opts?: TransportType): Mail;
+  createTransport(
+    opts?: TransportType,
+  ): Transporter<SMTPTransport.SentMessageInfo>;
 }

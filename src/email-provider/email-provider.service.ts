@@ -1,5 +1,4 @@
 /** Dependencies **/
-import { defaultsDeep } from 'lodash';
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import { SentMessageInfo, Transporter } from 'nodemailer';
 import * as smtpTransport from 'nodemailer/lib/smtp-transport';

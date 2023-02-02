@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import * as nodemailerMock from 'nodemailer-mock';
 
 import MailMessage from 'nodemailer/lib/mailer/mail-message';
